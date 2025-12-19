@@ -1,0 +1,11 @@
+# Editor
+.idea/
+
+# Python
+.venv/
+__pycache__/
+
+# Node.js
+node_modules/
+dist/
+
