@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@theme {
+  /* Creating custom color names for your UoM palette */
+  --color-uom-purple: #660099;
+  --color-uom-purple-dark: #4d0073; /* A slightly darker shade for hover effects */
+  
+  --color-uom-yellow: #FFCC33;
+  --color-uom-yellow-light: #ffdb66; /* A lighter shade for hover effects */
+  
+  --color-uom-grey: #999999;
+}
