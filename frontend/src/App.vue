@@ -16,17 +16,14 @@ import type router from './router';
         </div>
 
         <div class="flex items-center space-x-6">
-          <a href="/about" class="text-gray-600 hover:text-blue-600 font-medium transition">
-            About Us
-          </a>
+          <router-link to="/login" class="basic_button">
+            Login
+          </router-link>
 
-          <a href="/login" class="text-gray-600 hover:text-blue-600 font-medium transition">
-            Log in
-          </a>
-
-          <a href="/signup" class="bg-uom-purple hover:bg-purple-600 text-white px-5 py-2 rounded-lg font-medium shadow-sm transition transform hover:-translate-y-0.5">
-            Sign up
-          </a>
+          <router-link to="/register" class="basic_button">
+            Register
+          </router-link>
+            
         </div>
 
       </div>
