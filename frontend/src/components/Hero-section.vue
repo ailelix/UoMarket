@@ -2,7 +2,7 @@
     <section class="flex w-full items-start justify-center bg-[url('/src/assets/Landing-page-bg.jpg')] bg-cover bg-center bg-no-repeat">
   <div class="m-auto flex max-w-5xl grow flex-col items-center justify-start gap-6 py-20 md:gap-12 lg:max-w-screen-xl px-3 sm:px-8 lg:px-16 xl:px-32">
         <a href="/" class="text-8xl font-extrabold tracking-tight hover:opacity-80 transition">
-                <span class="text-uom-purple">UOM</span><span class="text-uom-yellow">MARKET</span>
+                <span class="text-uom-purple">UOM</span><span class="text-uom-yellow">ARKET</span>
         </a>
     <div class="flex max-w-2xl flex-1 flex-col items-center gap-6 text-center backdrop-blur-lg bg-white/60 rounded-lg p-12 shadow-lg">
       <h3 class="text-4xl font-semibold text-slate-950 md:text-6xl w-130">Made for students, by students</h3>
