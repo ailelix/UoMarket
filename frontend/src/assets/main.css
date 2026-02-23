@@ -9,6 +9,7 @@
   --color-uom-yellow-light: #ffdb66; /* A lighter shade for hover effects */
   
   --color-uom-grey: #999999;
+  --color-uom-purple-light: #7c3aed; /* Tailwind purple-600 */
 }
 
 .basic_button {
