@@ -11,3 +11,6 @@ database:
   username: "uomarket"
   password: "uomarket"
   dbname: "uomarket"
+
+sso:
+
