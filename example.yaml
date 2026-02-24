@@ -1,0 +1,16 @@
+server:
+  host: "127.0.0.1"
+  port: 8080
+
+log:
+  level: "INFO"
+
+database:
+  server: "127.0.0.1"
+  port: 5432
+  username: "uomarket"
+  password: "uomarket"
+  dbname: "uomarket"
+
+sso:
+
