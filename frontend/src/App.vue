@@ -19,11 +19,6 @@ import type router from './router';
           <router-link to="/login" class="basic_button">
             Login
           </router-link>
-
-          <router-link to="/register" class="basic_button">
-            Register
-          </router-link>
-            
         </div>
 
       </div>
