@@ -50,14 +50,14 @@
 
           <div class="mt-10 flex flex-wrap gap-4">
             <router-link 
-              to="/listings?category=tech" 
+              to="/marketplace" 
               class="inline-flex h-12 items-center justify-center rounded-xl bg-uom-purple px-8 text-base font-bold text-white transition-all duration-300 hover:bg-opacity-90 hover:shadow-lg hover:shadow-uom-purple/30 active:scale-95"
             >
               Browse Tech
             </router-link>
             
             <router-link 
-              to="/listings?category=books" 
+              to="/marketplace" 
               class="inline-flex h-12 items-center justify-center rounded-xl bg-white border border-slate-300 px-8 text-base font-bold text-slate-700 transition-all duration-300 hover:bg-slate-50 hover:text-uom-purple hover:border-uom-purple active:scale-95 shadow-sm"
             >
               Find Textbooks
