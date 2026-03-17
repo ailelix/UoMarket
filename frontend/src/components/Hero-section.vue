@@ -19,30 +19,14 @@
           The easiest way to buy, sell, and trade textbooks, tech, and dorm essentials within your campus community.
         </p>
         
-        <form class="flex w-full max-w-md gap-3 mt-4 flex-col sm:flex-row" @submit.prevent="handleSignup">
-          <div class="relative flex-grow group">
-            <div class="pointer-events-none absolute left-4 top-1/2 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-uom-purple transition-colors duration-300">
-              <svg width="20" height="20" viewBox="0 0 21 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path d="M13 8.3335L9.66667 11.6668L14.6667 16.6668L18 3.3335L3 9.16683L6.33333 10.8335L8 15.8335L10.5 12.5002" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              </svg>
-            </div>
-            
-            <input
-              id="email"
-              type="email"
-              placeholder="Your university email"
-              required
-              class="w-full rounded-xl bg-white border border-slate-300 py-3 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-300 focus:border-uom-purple focus:ring-2 focus:ring-purple-200 disabled:opacity-50 shadow-sm"
-            />
-          </div>
-          
-          <button 
-            type="submit" 
-            class="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-xl bg-uom-purple px-8 text-sm font-bold text-white transition-all duration-300 hover:bg-opacity-90 hover:shadow-lg hover:shadow-uom-purple/30 active:scale-95 disabled:opacity-50"
+        <div class="mt-4">
+          <router-link 
+            to="/login" 
+            class="inline-flex h-12 items-center justify-center whitespace-nowrap rounded-xl bg-uom-purple px-10 text-lg font-bold text-white transition-all duration-300 hover:bg-opacity-90 hover:shadow-lg hover:shadow-uom-purple/30 active:scale-95 hover:-translate-y-0.5"
           >
-            Sign Up
-          </button>
-        </form>
+            Sign In
+          </router-link>
+        </div>
       </div>
 
       <div class="flex flex-col items-center gap-6 md:flex-row md:gap-8 mt-4">
@@ -71,8 +55,4 @@
 </template>
 
 <script setup>
-// Example handler for the form
-const handleSignup = () => {
-  console.log("Signup submitted!");
-};
 </script>
