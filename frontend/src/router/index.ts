@@ -11,6 +11,7 @@ const routes = [
   { path : '/marketplace', name: 'MarketPlace', component: MarketPlace },
   { path : '/profile', name: 'ProfileView', component: ProfileView },
   { path : '/item/', name: 'ItemView', component: ItemView },
+
   
 ];
 
