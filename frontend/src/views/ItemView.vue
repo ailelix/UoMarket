@@ -3,10 +3,9 @@
     <div class="pt-6">
 
       <div class="mx-auto mt-6 max-w-2xl sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:gap-8 lg:px-8">
-        <img src="https://media1.tenor.com/m/LCCrUegzs70AAAAC/dog-getting-fade.gif" alt="Two each of gray, white, and black shirts laying flat." class="row-span-2 aspect-3/4 size-full rounded-lg object-cover max-lg:hidden shadow-sm" />
-        <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-02-tertiary-product-shot-01.jpg" alt="Model wearing plain black basic tee." class="col-start-2 aspect-3/2 size-full rounded-lg object-cover max-lg:hidden shadow-sm" />
-        <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-02-tertiary-product-shot-02.jpg" alt="Model wearing plain gray basic tee." class="col-start-2 row-start-2 aspect-3/2 size-full rounded-lg object-cover max-lg:hidden shadow-sm" />
-        <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-02-featured-product-shot.jpg" alt="Model wearing plain white basic tee." class="row-span-2 aspect-4/5 size-full object-cover sm:rounded-lg lg:aspect-3/4 shadow-sm" />
+        <template v-for="(src, idx) in images" :key="idx">
+          <img :src="src" :alt="`Product image ${idx + 1}`" :class="imageClass(idx)" />
+        </template>
       </div>
 
       <div class="mx-auto max-w-2xl px-4 pt-10 pb-16 sm:px-6 lg:grid lg:max-w-7xl lg:grid-cols-3 lg:grid-rows-[auto_auto_1fr] lg:gap-x-8 lg:px-8 lg:pt-16 lg:pb-24">
@@ -21,8 +20,8 @@
           <h2 class="sr-only">Product information</h2>
           <h3 class="text-lg font-semibold text-gray-500 uppercase tracking-wide">Highest Bid</h3>
           <p class="text-4xl font-bold tracking-tight text-purple-700 mt-2">
-            <span v-if="price">£{{ price }}</span>
-            <span v-else class="text-gray-300">--</span>
+            <span v-if="price !== null">£{{ formatPounds(price) }}</span>
+            <span v-else class="text-gray-300">67</span>
           </p>
 
           <div class="mt-6">
@@ -50,8 +49,20 @@
             </div>
           </div>
 
-          <form class="mt-10">
-            <button type="submit" class="mt-10 flex w-full items-center justify-center rounded-md border border-transparent bg-purple-700 px-8 py-4 text-lg font-bold text-white shadow-sm transition-colors hover:bg-purple-800 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-hidden">
+          <form @submit.prevent="placeBid" class="mt-10">
+            <div class="flex items-center space-x-4">
+              <button type="button" @click="changeUserBid(-10)" class="inline-flex items-center justify-center h-12 w-12 rounded-md border border-gray-300 bg-white text-lg font-bold text-gray-700 hover:bg-gray-50">-</button>
+
+              <div class="flex-1">
+                <label for="userBid" class="sr-only">Your bid</label>
+                <input id="userBid" v-model.number="user_bid" type="number" class="w-full rounded-md border border-gray-300 px-4 py-3 text-lg font-semibold text-gray-900" />
+
+              </div>
+
+              <button type="button" @click="changeUserBid(10)" class="inline-flex items-center justify-center h-12 w-12 rounded-md border border-gray-300 bg-white text-lg font-bold text-gray-700 hover:bg-gray-50">+</button>
+            </div>
+
+            <button type="submit" class="mt-6 w-full flex items-center justify-center rounded-md border border-transparent bg-purple-700 px-8 py-4 text-lg font-bold text-white shadow-sm transition-colors hover:bg-purple-800 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-hidden">
               Place Bid
             </button>
           </form>
@@ -178,9 +189,11 @@ const condition = ref('');
 const status = ref('');
 const categories = ref<string[]>([]);
 const image = ref('');
+const images = ref<string[]>([]); // list of image URLs for gallery display
 const auction = ref('');
 const bid = ref<number|null>(null);
 const ddl = ref('');
+const user_bid = ref<number|null>(null);
 
 async function fetchItemDetails(id: string) {
   const response = await fetch(`/api/items/${id}`);
@@ -190,16 +203,89 @@ async function fetchItemDetails(id: string) {
   // Update the reactive variables with the fetched data.
   title.value = data.name;
   description.value = data.description;
-  price.value = data.bid ?? null;
+  // incoming bid is in cents; convert to pounds
+  const bidCents = data.bid ?? null;
+  if (bidCents !== null) {
+    const bidPounds = bidCents / 100;
+    price.value = bidPounds;
+    bid.value = bidPounds;
+    
+    // initialize the user's bid to current highest bid + £10
+    user_bid.value = bidPounds + 10;
+  } else {
+    price.value = null;
+    bid.value = null;
+    user_bid.value = 10;
+  }
   condition.value = data.condition;
   status.value = data.status;
   categories.value = data.categories || [];
   image.value = data.image || '';
   auction.value = data.auction || '';
-  bid.value = data.bid ?? null;
   ddl.value = data.ddl || '';
+  // populate images array (support `images` or single `image`)
+  if (Array.isArray(data.images) && data.images.length > 0) {
+    images.value = data.images;
+  } else if (data.image) {
+    images.value = [data.image];
+  } else {
+    images.value = [];
+  }
 }
 
+async function placeBid() {
+  const currentHighest = bid.value ?? 0;
+  const proposed = user_bid.value ?? 0;
+  if (proposed <= currentHighest) {
+    alert('Your bid must be higher than the current highest bid.');
+    return;
+  }
+  // convert back to cents for submission
+  const proposedCents = Math.round(proposed * 100);
+  try {
+    const response = await fetch('/api/bids', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId: props.itemId, amount: proposedCents }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(text || `HTTP ${response.status}`);
+    }
+
+    const result = await response.json().catch(() => ({}));
+    // update UI to reflect new highest bid
+    bid.value = proposed;
+    price.value = proposed;
+    alert('Your bid was placed successfully.');
+    return result;
+  } catch (error) {
+    console.error('Error placing bid:', error);
+    alert('There was an error placing your bid. Please try again.');
+  }
+}
+
+function changeUserBid(delta: number) {
+  const base = user_bid.value ?? (bid.value ?? 0);
+  const next = base + delta;
+  // enforce minimum of 0
+  user_bid.value = Math.max(0, Math.round(next));
+}
+
+function formatPounds(value: number | null) {
+  if (value === null) return '0.00';
+  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function imageClass(idx: number) {
+  // mimic previous layout for first four images, fallback for more
+  if (idx === 0) return 'row-span-2 aspect-3/4 size-full rounded-lg object-cover max-lg:hidden shadow-sm';
+  if (idx === 1) return 'col-start-2 aspect-3/2 size-full rounded-lg object-cover max-lg:hidden shadow-sm';
+  if (idx === 2) return 'col-start-2 row-start-2 aspect-3/2 size-full rounded-lg object-cover max-lg:hidden shadow-sm';
+  if (idx === 3) return 'row-span-2 aspect-4/5 size-full object-cover sm:rounded-lg lg:aspect-3/4 shadow-sm';
+  return 'aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80 shadow-sm';
+}
 // run on initial load.
 onMounted(() => {
   fetchItemDetails(props.itemId);
