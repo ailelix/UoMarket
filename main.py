@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     try:
         logger.debug("Loading configuration")
-        app_conf = config.AppConfig.load_config("example/config.yaml")
+        app_conf = config.AppConfig.load_config("config.yaml")
         logger.debug("Config loaded")
     except Exception as e:
         logger.error(e)
