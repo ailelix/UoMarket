@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, IPvAnyAddress
 class ServerConfig(BaseModel):
     host: IPvAnyAddress
     port: int = Field(..., ge=1, le=65535)
+    django_secret: str
 
 class LogConfig(BaseModel):
     level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]

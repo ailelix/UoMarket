@@ -1,6 +1,7 @@
 server:
   host: "127.0.0.1"
   port: 8080
+  django_secret: "randomtextforsecretkey"
 
 log:
   level: "INFO"
@@ -11,6 +12,3 @@ database:
   username: "uomarket"
   password: "uomarket"
   dbname: "uomarket"
-
-sso:
-

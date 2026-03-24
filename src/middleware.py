@@ -17,6 +17,10 @@ class AuthMiddleware:
 
         path = request.path_info
 
+        # Bypass static assets
+        if path.startswith('/static/') or path == '/favicon.ico':
+            return self.get_response(request)
+
         if path not in whitelist and not request.user.is_authenticated:
             # If it is API ask the frontend to redirect login
             if path.startswith('/api/'):
