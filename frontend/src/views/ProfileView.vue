@@ -1,99 +1,78 @@
 <template>
 	<div class="min-h-screen bg-white px-4 py-12 font-sans text-slate-900">
-		<div class="mx-auto flex w-full max-w-2xl items-center justify-center">
-			<div
-				class="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10"
-			>
-				<div class="flex flex-col gap-8">
-					<div class="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-						<div
-							class="flex h-28 w-28 items-center justify-center rounded-full bg-slate-100 text-slate-400"
-						>
-							<span class="text-xs font-semibold uppercase tracking-wide">Photo</span>
-						</div>
-
-						<div class="w-full">
-							<div class="flex flex-wrap items-center justify-between gap-3">
-								<h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-									{{ profile.fullName }}
-								</h1>
-								<span :class="statusBadgeClass">
-									{{ statusLabel }}
-								</span>
-							</div>
-
-							<div class="mt-4 flex items-center gap-2 text-base text-slate-500">
-								<svg
-									class="h-5 w-5 text-slate-400"
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									aria-hidden="true"
-								>
-									<path d="M4 4h16v16H4z" />
-									<path d="m22 6-10 7L2 6" />
-								</svg>
-								<span>{{ profile.email }}</span>
-							</div>
-
-							<p class="mt-5 text-sm text-slate-500">
-								{{ joinedLabel }}
-							</p>
-						</div>
-					</div>
-
-					<div class="border-t border-slate-200 pt-6">
-						<h2 class="text-lg font-semibold text-slate-900">Edit profile</h2>
-						<div class="mt-4 grid gap-4 sm:grid-cols-2">
-							<label class="flex flex-col gap-2 text-sm text-slate-600">
-								<span class="font-medium text-slate-700">Full name</span>
-								<input
-									v-model="profile.fullName"
-									type="text"
-									class="h-11 rounded-xl border border-slate-200 px-4 text-base text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
-									placeholder="Enter full name"
-								/>
-							</label>
-
-							<label class="flex flex-col gap-2 text-sm text-slate-600">
-								<span class="font-medium text-slate-700">Email</span>
-								<input
-									v-model="profile.email"
-									type="email"
-									class="h-11 rounded-xl border border-slate-200 px-4 text-base text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
-									placeholder="name@example.com"
-								/>
-							</label>
-
-							<label class="flex flex-col gap-2 text-sm text-slate-600 sm:col-span-2">
-								<span class="font-medium text-slate-700">Status</span>
-								<select
-									v-model="profile.status"
-									class="h-11 rounded-xl border border-slate-200 bg-white px-4 text-base text-slate-900 shadow-sm focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
-								>
-									<option value="active">Active</option>
-									<option value="inactive">Inactive</option>
-								</select>
-							</label>
-						</div>
-					</div>
+		<div class="mx-auto flex w-full max-w-lg items-center justify-center">
+			<div class="w-full rounded-3xl border border-slate-200 bg-white p-8 shadow-sm sm:p-10">
+				<div class="flex flex-col gap-6 items-center text-center">
+					<h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+						{{ profile.fullName }}
+					</h1>
+					<span :class="statusBadgeClass">
+						{{ statusLabel }}
+					</span>
 				</div>
 			</div>
 		</div>
+
+        <!-- My Items Section -->
+        <div class="mx-auto mt-12 w-full max-w-5xl">
+            <h2 class="text-2xl font-bold tracking-tight text-slate-900 mb-6">My Items</h2>
+            <div v-if="items.length === 0" class="text-center text-slate-500 py-12 bg-slate-50 rounded-3xl border border-slate-200">
+                You haven't posted any items yet.
+            </div>
+            <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div v-for="item in items" :key="item.id" class="group relative bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all">
+                    <img :src="item.image || 'https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-01-related-product-01.jpg'" :alt="item.name" class="aspect-video w-full object-cover bg-slate-100" />
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 class="text-base font-semibold text-slate-900">
+                                    <router-link :to="'/item?id=' + item.id" class="hover:text-uom-purple">
+                                        {{ item.name }}
+                                    </router-link>
+                                </h3>
+                                <p class="mt-1 text-sm text-slate-500">${{ (item.price_cents || 0) / 100 }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-100">
+                            <router-link :to="'/edit-item?id=' + item.id" class="w-full flex justify-center py-2 px-4 border border-slate-300 rounded-xl text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 transition-colors">
+                                Edit Item
+                            </router-link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from "vue";
+import { computed, reactive, onMounted, ref } from "vue";
+import axios from "axios";
 
 const profile = reactive({
-	fullName: "Avery Williams",
-	email: "avery.williams@uomarket.com",
+    id: null as number | null,
+	fullName: "Loading...",
+	email: "Loading...",
 	status: "active",
 	createdAt: "2023-08-14T00:00:00.000Z",
+});
+
+const items = ref<any[]>([]);
+
+onMounted(async () => {
+	try {
+		const res = await axios.get('/api/me');
+        profile.id = res.data.id;
+		profile.fullName = res.data.name || res.data.username;
+		profile.email = res.data.email || `${res.data.username}@student.manchester.ac.uk`;
+        
+        if (profile.id) {
+            const itemsRes = await axios.get(`/api/items?seller=${profile.id}`);
+            items.value = itemsRes.data;
+        }
+	} catch (err) {
+		console.error("Not logged in");
+	}
 });
 
 const joinedLabel = computed(() =>

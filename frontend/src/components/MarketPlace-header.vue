@@ -1,12 +1,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
 
 const categories = [
-  { name: 'Textbooks', href: '/listings?category=textbooks' },
-  { name: 'Electronics', href: '/listings?category=electronics' },
-  { name: 'Home & Kitchen', href: '/listings?category=home' },
-  { name: 'Tickets', href: '/listings?category=tickets' },
-  { name: 'Other', href: '/listings?category=other' },
+  { name: 'Textbooks', href: '/marketplace?category=Textbooks' },
+  { name: 'Electronics', href: '/marketplace?category=Electronics' },
+  { name: 'Home & Kitchen', href: '/marketplace?category=Home' },
+  { name: 'Tickets', href: '/marketplace?category=Tickets' },
+  { name: 'Other', href: '/marketplace?category=Other' },
 ];
 
 const searchQuery = ref('');
@@ -14,7 +17,11 @@ const isCategoriesOpen = ref(false);
 const dropdownRef = ref(null);
 
 const handleSearch = () => {
-  console.log("Searching for:", searchQuery.value);
+  if (searchQuery.value) {
+    router.push({ path: '/marketplace', query: { keyword: searchQuery.value } });
+  } else {
+    router.push({ path: '/marketplace' });
+  }
 };
 
 // Close dropdown if user clicks outside of it
@@ -77,14 +84,14 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside));
                 class="absolute left-0 top-full mt-3 w-56 origin-top-left rounded-xl bg-white shadow-xl ring-1 ring-black/5 focus:outline-none overflow-hidden"
               >
                 <div class="py-2">
-                  <a 
+                  <router-link 
                     v-for="item in categories" 
                     :key="item.name" 
-                    :href="item.href" 
+                    :to="item.href" 
                     class="block px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-uom-purple/5 hover:text-uom-purple transition-colors"
                   >
                     {{ item.name }}
-                  </a>
+                  </router-link>
                 </div>
               </div>
             </transition>

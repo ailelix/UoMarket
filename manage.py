@@ -1,18 +1,19 @@
 import sys
 import os
-import django
-from django.conf import settings
-from django.core.management import execute_from_command_line
-from .middleware import AuthMiddleware
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-def run(app_conf):
-    # Setup Django
+from src import app
+from src import config
+
+if __name__ == "__main__":
+    app_conf = config.AppConfig.load_config("config.yaml")
+
+    import django
+    from django.conf import settings
+
     if not settings.configured:
         settings.configure(
             DEBUG=True,
             SECRET_KEY=app_conf.server.django_secret,
-            # Pass config from config.yaml
             AUTH_USER_MODEL='src.User',
             DATABASES={
                 'default': {
@@ -26,7 +27,7 @@ def run(app_conf):
             },
             TEMPLATES=[{
                 'BACKEND': 'django.template.backends.django.DjangoTemplates',
-                'DIRS': [os.path.join(BASE_DIR, 'frontend', 'dist')],
+                'DIRS': [os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend', 'dist')],
                 'APP_DIRS': True,
             }],
             INSTALLED_APPS=[
@@ -40,7 +41,7 @@ def run(app_conf):
                 'django.middleware.common.CommonMiddleware',
                 'django.middleware.csrf.CsrfViewMiddleware',
                 'django.contrib.auth.middleware.AuthenticationMiddleware',
-                'src.middleware.AuthMiddleware', # Custom middleware
+                'src.middleware.AuthMiddleware',
             ],
             ROOT_URLCONF='src.route',
             TIME_ZONE='Europe/London',
@@ -48,9 +49,5 @@ def run(app_conf):
         )
         django.setup()
 
-    # Prepare booting parameters
-    # Pass host and port to the startup command
-    addrport = f"{app_conf.server.host}:{app_conf.server.port}"
-    sys.argv = ['manage.py', 'runserver', addrport, '--nothreading', '--noreload']
-
+    from django.core.management import execute_from_command_line
     execute_from_command_line(sys.argv)

@@ -15,15 +15,52 @@
         </div>
 
         <div class="flex-1 flex justify-end items-center text-lg font-bold">
-          <router-link to="/login" class="login-btn">
-            Login
-          </router-link>
+          <template v-if="user">
+            <router-link to="/profile" class="login-btn">
+              Profile
+            </router-link>
+            <button @click="logout" class="ml-4 text-sm font-medium text-slate-600 hover:text-slate-900 transition underline">
+              Logout
+            </button>
+          </template>
+          <template v-else>
+            <router-link to="/login" class="login-btn">
+              Login
+            </router-link>
+          </template>
         </div>
       </div>
     </div>
   </nav>
   <router-view />
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+
+const user = ref(null);
+
+onMounted(async () => {
+  try {
+    const res = await axios.get('/api/me');
+    user.value = res.data;
+  } catch (err) {
+    user.value = null;
+  }
+});
+
+const logout = async () => {
+  try {
+    axios.defaults.xsrfCookieName = 'csrftoken';
+    axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+    await axios.post('/api/logout');
+    window.location.href = '/';
+  } catch (err) {
+    console.error(err);
+  }
+};
+</script>
 
 <style scoped>
 .marketplace-btn {

@@ -68,6 +68,9 @@ class Listing(models.Model):
     price_cents = models.PositiveIntegerField()
     condition = models.CharField(max_length=20, choices=ListingCondition.choices)
     status = models.CharField(max_length=20, choices=ListingStatus.choices, default=ListingStatus.ACTIVE)
+    categories = models.ManyToManyField(Category, related_name='listings')
+    is_auction = models.BooleanField(default=False)
+    endtime = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def place_bid(self, user, amount_cents):

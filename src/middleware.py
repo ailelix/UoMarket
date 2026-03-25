@@ -11,14 +11,15 @@ class AuthMiddleware:
         # Define dirs that bypass the middleware
         whitelist = [
             '/login',
-            '/logout',
+            '/api/login',
+            '/api/logout',
             '/api/callback'
         ]
 
         path = request.path_info
 
         # Bypass static assets
-        if path.startswith('/static/') or path == '/favicon.ico':
+        if path.startswith('/static/') or path.startswith('/assets/') or path == '/favicon.ico':
             return self.get_response(request)
 
         if path not in whitelist and not request.user.is_authenticated:
@@ -26,8 +27,8 @@ class AuthMiddleware:
             if path.startswith('/api/'):
                 return JsonResponse({'status': 'error', 'msg': 'User not logged in'}, status=401)
 
-            # If it is page request just redirect to login page
-            return redirect('/login')
+            # If it is page request just let Vue handle the Auth state
+            return self.get_response(request)
 
         response = self.get_response(request)
         return response

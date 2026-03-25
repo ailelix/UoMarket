@@ -21,42 +21,21 @@
           <h3 class="text-lg font-semibold text-gray-500 uppercase tracking-wide">Highest Bid</h3>
           <p class="text-4xl font-bold tracking-tight text-purple-700 mt-2">
             <span v-if="price !== null">£{{ formatPounds(price) }}</span>
-            <span v-else class="text-gray-300">67</span>
+            <span v-else class="text-gray-300">Base</span>
           </p>
 
-          <div class="mt-6">
-            <h3 class="text-sm font-medium text-gray-900">Seller Rating</h3>
-            <div class="flex items-center mt-2">
-              <div class="flex items-center">
-                <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-yellow-400">
-                  <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-yellow-400">
-                  <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-yellow-400">
-                  <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-yellow-400">
-                  <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-                <svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-gray-200">
-                  <path d="M10.868 2.884c-.321-.772-1.415-.772-1.736 0l-1.83 4.401-4.753.381c-.833.067-1.171 1.107-.536 1.651l3.62 3.102-1.106 4.637c-.194.813.691 1.456 1.405 1.02L10 15.591l4.069 2.485c.713.436 1.598-.207 1.404-1.02l-1.106-4.637 3.62-3.102c.635-.544.297-1.584-.536-1.65l-4.752-.382-1.831-4.401Z" clip-rule="evenodd" fill-rule="evenodd" />
-                </svg>
-              </div>
-              <p class="sr-only">4 out of 5 stars</p>
-              <a href="#" class="ml-3 text-sm font-medium text-purple-700 hover:text-purple-600 transition-colors">117 reviews</a>
-            </div>
+          <div v-if="auction === 'auction' && timeRemaining" class="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl shadow-sm">
+            <span class="text-sm font-semibold text-indigo-800 uppercase tracking-wide">Time Remaining</span>
+            <p class="text-2xl font-bold text-indigo-900 mt-1 tabular-nums">{{ timeRemaining }}</p>
           </div>
 
-          <form @submit.prevent="placeBid" class="mt-10">
+          <form v-if="currentUserId !== sellerId" @submit.prevent="placeBid" class="mt-10">
             <div class="flex items-center space-x-4">
               <button type="button" @click="changeUserBid(-10)" class="inline-flex items-center justify-center h-12 w-12 rounded-md border border-gray-300 bg-white text-lg font-bold text-gray-700 hover:bg-gray-50">-</button>
 
               <div class="flex-1">
                 <label for="userBid" class="sr-only">Your bid</label>
                 <input id="userBid" v-model.number="user_bid" type="number" class="w-full rounded-md border border-gray-300 px-4 py-3 text-lg font-semibold text-gray-900" />
-
               </div>
 
               <button type="button" @click="changeUserBid(10)" class="inline-flex items-center justify-center h-12 w-12 rounded-md border border-gray-300 bg-white text-lg font-bold text-gray-700 hover:bg-gray-50">+</button>
@@ -66,6 +45,10 @@
               Place Bid
             </button>
           </form>
+          
+          <div v-else class="mt-10 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
+            <p class="text-yellow-800 text-center font-medium">You cannot bid on your own item.</p>
+          </div>
         </div>
 
         <div class="py-10 lg:col-span-2 lg:col-start-1 lg:border-r lg:border-gray-200 lg:pt-6 lg:pr-8 lg:pb-16">
@@ -106,81 +89,14 @@
       </div>
     </div>
   </div>
-
-  <div class="bg-gray-50 border-t border-gray-200">
-    <div class="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
-      <h2 class="text-2xl font-bold tracking-tight text-gray-900">Similar Products</h2>
-
-      <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
-        <div class="group relative">
-          <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-01-related-product-01.jpg" alt="Front of men&#039;s Basic Tee in black." class="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80 shadow-sm" />
-          <div class="mt-4 flex justify-between">
-            <div>
-              <h3 class="text-sm font-medium text-gray-900">
-                <a href="#">
-                  <span aria-hidden="true" class="absolute inset-0"></span>
-                  Basic Tee
-                </a>
-              </h3>
-              <p class="mt-1 text-sm text-gray-500">Black</p>
-            </div>
-            <p class="text-sm font-medium text-purple-700">£35</p>
-          </div>
-        </div>
-        <div class="group relative">
-          <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-01-related-product-02.jpg" alt="Front of men&#039;s Basic Tee in white." class="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80 shadow-sm" />
-          <div class="mt-4 flex justify-between">
-            <div>
-              <h3 class="text-sm font-medium text-gray-900">
-                <a href="#">
-                  <span aria-hidden="true" class="absolute inset-0"></span>
-                  Basic Tee
-                </a>
-              </h3>
-              <p class="mt-1 text-sm text-gray-500">Aspen White</p>
-            </div>
-            <p class="text-sm font-medium text-purple-700">£35</p>
-          </div>
-        </div>
-        <div class="group relative">
-          <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-01-related-product-03.jpg" alt="Front of men&#039;s Basic Tee in dark gray." class="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80 shadow-sm" />
-          <div class="mt-4 flex justify-between">
-            <div>
-              <h3 class="text-sm font-medium text-gray-900">
-                <a href="#">
-                  <span aria-hidden="true" class="absolute inset-0"></span>
-                  Basic Tee
-                </a>
-              </h3>
-              <p class="mt-1 text-sm text-gray-500">Charcoal</p>
-            </div>
-            <p class="text-sm font-medium text-purple-700">£35</p>
-          </div>
-        </div>
-        <div class="group relative">
-          <img src="https://tailwindcss.com/plus-assets/img/ecommerce-images/product-page-01-related-product-04.jpg" alt="Front of men&#039;s Artwork Tee in peach with white and brown dots forming an isometric cube." class="aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80 shadow-sm" />
-          <div class="mt-4 flex justify-between">
-            <div>
-              <h3 class="text-sm font-medium text-gray-900">
-                <a href="#">
-                  <span aria-hidden="true" class="absolute inset-0"></span>
-                  Artwork Tee
-                </a>
-              </h3>
-              <p class="mt-1 text-sm text-gray-500">Iso Dots</p>
-            </div>
-            <p class="text-sm font-medium text-purple-700">£35</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
 
-const props = defineProps<{ itemId: string }>();
+const route = useRoute();
 
 const title = ref('');
 const description = ref('');
@@ -194,6 +110,30 @@ const auction = ref('');
 const bid = ref<number|null>(null);
 const ddl = ref('');
 const user_bid = ref<number|null>(null);
+const currentUserId = ref<number|null>(null);
+const sellerId = ref<number|null>(null);
+
+const timeRemaining = ref('');
+let timer: ReturnType<typeof setInterval> | null = null;
+
+const updateCountdown = () => {
+  if (!ddl.value) return;
+  const now = new Date();
+  const end = new Date(ddl.value);
+  const diff = end.getTime() - now.getTime();
+  if (diff <= 0) {
+    timeRemaining.value = 'Auction Ended';
+    if (timer) clearInterval(timer);
+    return;
+  }
+  const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+  const m = Math.floor((diff / 1000 / 60) % 60);
+  const s = Math.floor((diff / 1000) % 60);
+  
+  if (d > 0) timeRemaining.value = `${d}d ${h}h ${m}m ${s}s`;
+  else timeRemaining.value = `${h}h ${m}m ${s}s`;
+};
 
 async function fetchItemDetails(id: string) {
   const response = await fetch(`/api/items/${id}`);
@@ -223,6 +163,7 @@ async function fetchItemDetails(id: string) {
   image.value = data.image || '';
   auction.value = data.auction || '';
   ddl.value = data.ddl || '';
+  sellerId.value = data.seller_id;
   // populate images array (support `images` or single `image`)
   if (Array.isArray(data.images) && data.images.length > 0) {
     images.value = data.images;
@@ -230,6 +171,12 @@ async function fetchItemDetails(id: string) {
     images.value = [data.image];
   } else {
     images.value = [];
+  }
+  
+  if (ddl.value && data.auction === 'auction') {
+    updateCountdown();
+    if (timer) clearInterval(timer);
+    timer = setInterval(updateCountdown, 1000);
   }
 }
 
@@ -246,7 +193,7 @@ async function placeBid() {
     const response = await fetch('/api/bids', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId: props.itemId, amount: proposedCents }),
+      body: JSON.stringify({ itemId: route.query.id, amount: proposedCents }),
     });
 
     if (!response.ok) {
@@ -287,12 +234,25 @@ function imageClass(idx: number) {
   return 'aspect-square w-full rounded-md bg-gray-200 object-cover group-hover:opacity-75 lg:aspect-auto lg:h-80 shadow-sm';
 }
 // run on initial load.
-onMounted(() => {
-  fetchItemDetails(props.itemId);
+onMounted(async () => {
+  try {
+    const meRes = await axios.get('/api/me');
+    currentUserId.value = meRes.data.id;
+  } catch (err) {}
+
+  if (route.query.id) {
+    fetchItemDetails(route.query.id as string);
+  }
 });
 
 // When user clicks on a different item.
-watch(() => props.itemId, (newId) => {
-  fetchItemDetails(newId);
+watch(() => route.query.id, (newId) => {
+  if (newId) {
+    fetchItemDetails(newId as string);
+  }
+});
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer);
 });
 </script>
