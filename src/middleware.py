@@ -19,7 +19,7 @@ class AuthMiddleware:
         path = request.path_info
 
         # Bypass static assets
-        if path.startswith('/static/') or path.startswith('/assets/') or path == '/favicon.ico':
+        if path.startswith('/static/') or path.startswith('/assets/') or path.startswith('/media/') or path == '/favicon.ico':
             return self.get_response(request)
 
         if path not in whitelist and not request.user.is_authenticated:

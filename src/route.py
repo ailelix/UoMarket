@@ -1,3 +1,5 @@
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, re_path
 from django.views.static import serve
 import os
@@ -21,9 +23,12 @@ urlpatterns = [
     path('api/users/<int:user_id>', view.get_user),
     path('api/category/<int:category_id>', view.get_category),
     path('api/categorys', view.get_categories),
-
-    # Route common pages to Vue actual sites
-    re_path(r'^.*$', view.index)
 ]
 
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+# Route common pages to Vue actual sites
+urlpatterns += [
+    re_path(r'^.*$', view.index)
+]

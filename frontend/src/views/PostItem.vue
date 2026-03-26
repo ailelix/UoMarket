@@ -33,6 +33,14 @@
           <input v-model="form.categories" type="text" placeholder="e.g. Textbooks, Electronics" class="mt-1 block w-full rounded-xl border border-slate-300 py-2 px-3 shadow-sm focus:border-uom-purple focus:ring-uom-purple sm:text-sm">
         </div>
 
+        <div>
+            <label class="block text-sm font-medium text-slate-700">Item Image</label>
+            <input @change="handleFileChange" type="file" accept="image/*" class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-uom-purple/10 file:text-uom-purple hover:file:bg-uom-purple/20">
+            <div v-if="imagePreview" class="mt-4">
+              <img :src="imagePreview" class="w-48 h-48 object-cover rounded-xl"/>
+            </div>
+        </div>
+
         <div class="flex items-center gap-2 border-t border-slate-200 pt-6">
           <input type="checkbox" v-model="form.is_auction" class="h-4 w-4 rounded border-gray-300 text-uom-purple focus:ring-uom-purple">
           <label class="text-sm font-medium text-slate-700">Is Auction?</label>
@@ -63,6 +71,9 @@ import axios from 'axios';
 
 const router = useRouter();
 
+const file = ref(null);
+const imagePreview = ref(null);
+
 const currentDateTime = computed(() => {
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -79,22 +90,42 @@ const form = reactive({
   categories: ''
 });
 
+const handleFileChange = (e) => {
+  const selectedFile = e.target.files[0];
+  if (selectedFile) {
+    file.value = selectedFile;
+    imagePreview.value = URL.createObjectURL(selectedFile);
+  }
+};
+
 const submitItem = async () => {
   try {
     axios.defaults.xsrfCookieName = 'csrftoken';
     axios.defaults.xsrfHeaderName = 'X-CSRFToken';
-    const payload = { ...form };
-    payload.price_cents = Math.round(payload.price * 100);
-    payload.categories = payload.categories.split(',').map(c => c.trim()).filter(Boolean);
-    delete payload.price;
 
-    if (!payload.is_auction) {
-      payload.endtime = null;
-    } else if (payload.endtime) {
-      payload.endtime = new Date(payload.endtime).toISOString();
+    const formData = new FormData();
+    formData.append('title', form.title);
+    formData.append('description', form.description);
+    formData.append('price_cents', Math.round(form.price * 100));
+    formData.append('condition', form.condition);
+    formData.append('is_auction', form.is_auction);
+    if (form.is_auction && form.endtime) {
+      formData.append('endtime', new Date(form.endtime).toISOString());
+    } else {
+      formData.append('endtime', '');
+    }
+    const cats = form.categories.split(',').map(c => c.trim()).filter(Boolean);
+    cats.forEach(c => formData.append('categories', c));
+
+    if (file.value) {
+      formData.append('image', file.value);
     }
     
-    const res = await axios.post('/api/items', payload);
+    const res = await axios.post('/api/items', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     if (res.data.status === 'success') {
       router.push('/marketplace');
     }

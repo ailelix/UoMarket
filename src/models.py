@@ -116,7 +116,7 @@ class ListingImage(models.Model):
         on_delete=models.CASCADE,
         related_name='images'
     )
-    image_url = models.CharField(max_length=500)
+    image = models.ImageField(upload_to='listing_images/', null=True, blank=True)
     sort_order = models.IntegerField(default=0)
 
     class Meta:

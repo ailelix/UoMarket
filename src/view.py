@@ -8,8 +8,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.exceptions import ValidationError
 from django.contrib.auth import login, get_user_model
 from django.db.models import Q
+from django.db import transaction
+from django.core.files.storage import FileSystemStorage
 
-from .models import Listing, ListingStatus, Category
+from .models import Listing, ListingStatus, Category, ListingImage
 
 User = get_user_model()
 
@@ -74,37 +76,53 @@ def uom_auth_callback(request):
 def manage_listing(request, listing_id=None):
     # Create item
     if request.method == 'POST':
-        data = json.loads(request.body)
-        
-        is_auction = data.get('is_auction', False)
-        parsed_endtime = None
-        if is_auction and data.get('endtime'):
-            from django.utils.dateparse import parse_datetime
-            from django.utils import timezone
-            parsed_endtime = parse_datetime(data['endtime'])
-            if parsed_endtime and parsed_endtime <= timezone.now():
-                return JsonResponse({'error': 'Auction end time must be in the future'}, status=400)
+        # Data is now expected as multipart/form-data, not JSON
+        data = request.POST
+        files = request.FILES
+
+        if 'image' not in files:
+            return JsonResponse({'error': 'An image is required for a new listing.'}, status=400)
+
+        try:
+            with transaction.atomic():
+                is_auction = data.get('is_auction') == 'true'
+                parsed_endtime = None
+                if is_auction and data.get('endtime'):
+                    from django.utils.dateparse import parse_datetime
+                    from django.utils import timezone
+                    parsed_endtime = parse_datetime(data['endtime'])
+                    if parsed_endtime and parsed_endtime <= timezone.now():
+                        return JsonResponse({'error': 'Auction end time must be in the future'}, status=400)
+
+                listing = Listing.objects.create(
+                    seller=request.user,
+                    title=data['title'],
+                    description=data.get('description', ''),
+                    price_cents=int(data['price_cents']),
+                    condition=data['condition'],
+                    is_auction=is_auction,
+                    endtime=parsed_endtime
+                )
                 
-        listing = Listing.objects.create(
-            seller=request.user,
-            title=data['title'],
-            description=data.get('description', ''),
-            price_cents=int(data['price_cents']),
-            condition=data['condition'],
-            is_auction=is_auction,
-            endtime=parsed_endtime
-        )
-        
-        if data.get('categories') is not None:
-            cat_list = []
-            for cat_name in data['categories']:
-                cat_name = str(cat_name).strip()
-                if cat_name:
-                    cat_obj, _ = Category.objects.get_or_create(name=cat_name)
-                    cat_list.append(cat_obj)
-            listing.categories.set(cat_list)
-            
-        return JsonResponse({'status': 'success', 'id': listing.id}, status=201)
+                ListingImage.objects.create(listing=listing, image=files['image'])
+
+                # Handle categories, assuming they are sent as multiple form fields with the same name
+                categories_names = data.getlist('categories')
+                if categories_names:
+                    cat_list = []
+                    for cat_name in categories_names:
+                        cat_name = str(cat_name).strip()
+                        if cat_name:
+                            cat_obj, _ = Category.objects.get_or_create(name=cat_name)
+                            cat_list.append(cat_obj)
+                    listing.categories.set(cat_list)
+
+
+            return JsonResponse({'status': 'success', 'id': listing.id}, status=201)
+        except KeyError as e:
+            return JsonResponse({'error': f'Missing required field: {e}'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': 'An unexpected error occurred while creating the listing.'}, status=500)
 
     # Modify item
     elif request.method == 'PATCH':
@@ -224,11 +242,11 @@ def get_items(request):
                 
         results = []
         for item in qs:
-            image = item.images.order_by('sort_order').first()
+            first_image = item.images.first()
             results.append({
                 "id": item.id,
                 "name": item.title,
-                "image": image.image_url if image else None,
+                "image": first_image.image.url if first_image else None,
                 "price_cents": item.price_cents
             })
         return JsonResponse(results, safe=False)
@@ -251,11 +269,12 @@ def get_item(request, item_id):
     _settle_expired_auctions()
     if request.method == 'GET':
         item = get_object_or_404(Listing, pk=item_id)
-        images = list(item.images.order_by('sort_order').values_list('image_url', flat=True))
         categories = list(item.categories.values_list('name', flat=True))
         
         highest_bid = item.bids.first()
         bid_amount = highest_bid.amount_cents if highest_bid else item.price_cents
+        
+        images = [img.image.url for img in item.images.all()]
         
         data = {
             "id": item.id,
