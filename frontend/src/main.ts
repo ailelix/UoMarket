@@ -1,6 +1,13 @@
-import './assets/main.css'
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
+import './assets/main.css';
 
-import { createApp } from 'vue'
-import App from './App.vue'
+// Set up CSRF token when calling Django API
+import axios from 'axios';
+axios.defaults.xsrfCookieName = 'csrftoken';
+axios.defaults.xsrfHeaderName = 'X-CSRFToken';
 
-createApp(App).mount('#app')
+const app = createApp(App);
+app.use(router);
+app.mount('#app');

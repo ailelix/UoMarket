@@ -9,3 +9,9 @@ __pycache__/
 node_modules/
 dist/
 
+
+# Config files
+config.yaml
+
+# Media Assets
+media/
