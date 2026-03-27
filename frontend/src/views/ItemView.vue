@@ -29,7 +29,11 @@
             <p class="text-2xl font-bold text-indigo-900 mt-1 tabular-nums">{{ timeRemaining }}</p>
           </div>
 
-          <form v-if="currentUserId !== sellerId" @submit.prevent="placeBid" class="mt-10">
+          <div v-if="!currentUserId" class="mt-10 p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <p class="text-gray-800 text-center font-medium">Please <router-link to="/login" class="text-purple-600 underline">log in</router-link> to place a bid.</p>
+          </div>
+          
+          <form v-else-if="currentUserId !== sellerId" @submit.prevent="placeBid" class="mt-10">
             <div class="flex items-center space-x-4">
               <button type="button" @click="changeUserBid(-10)" class="inline-flex items-center justify-center h-12 w-12 rounded-md border border-gray-300 bg-white text-lg font-bold text-gray-700 hover:bg-gray-50">-</button>
 
@@ -190,18 +194,15 @@ async function placeBid() {
   // convert back to cents for submission
   const proposedCents = Math.round(proposed * 100);
   try {
-    const response = await fetch('/api/bids', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ itemId: route.query.id, amount: proposedCents }),
+    axios.defaults.xsrfCookieName = 'csrftoken';
+    axios.defaults.xsrfHeaderName = 'X-CSRFToken';
+    
+    const response = await axios.post('/api/bids', { 
+      itemId: route.query.id, 
+      amount: proposedCents 
     });
 
-    if (!response.ok) {
-      const text = await response.text().catch(() => '');
-      throw new Error(text || `HTTP ${response.status}`);
-    }
-
-    const result = await response.json().catch(() => ({}));
+    const result = response.data;
     // update UI to reflect new highest bid
     bid.value = proposed;
     price.value = proposed;
@@ -209,7 +210,11 @@ async function placeBid() {
     return result;
   } catch (error) {
     console.error('Error placing bid:', error);
-    alert('There was an error placing your bid. Please try again.');
+    if (error.response && error.response.data && error.response.data.message) {
+      alert('Error: ' + error.response.data.message);
+    } else {
+      alert('There was an error placing your bid. Please try again.');
+    }
   }
 }
 

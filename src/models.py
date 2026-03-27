@@ -77,9 +77,13 @@ class Listing(models.Model):
         """
         Process new bids
         """
+        from django.utils import timezone
+        
         # Verification
         if self.status != ListingStatus.ACTIVE:
             raise ValidationError("The item is not active")
+        if self.is_auction and self.endtime and self.endtime <= timezone.now():
+            raise ValidationError("The auction has already ended")
         if user == self.seller:
             raise ValidationError("You cannot bid your own item")
         if amount_cents <= self.price_cents:

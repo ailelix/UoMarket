@@ -25,7 +25,7 @@
               </h3>
               <p class="mt-1 text-sm text-gray-500">Item #{{ item.id }}</p>
             </div>
-            <p class="text-sm font-medium text-gray-900">${{ (item.price_cents || 0) / 100 }}</p>
+            <p class="text-sm font-medium text-gray-900">£{{ (item.price_cents || 0) / 100 }}</p>
           </div>
         </div>
       </div>

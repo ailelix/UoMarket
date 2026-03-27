@@ -22,7 +22,14 @@ class AuthMiddleware:
         if path.startswith('/static/') or path.startswith('/assets/') or path.startswith('/media/') or path == '/favicon.ico':
             return self.get_response(request)
 
-        if path not in whitelist and not request.user.is_authenticated:
+        # Allow unauthenticated GET requests to items and categories
+        is_public_get = request.method == 'GET' and (
+            path == '/api/items' or 
+            path.startswith('/api/items/') or 
+            path.startswith('/api/category')
+        )
+
+        if path not in whitelist and not is_public_get and not request.user.is_authenticated:
             # If it is API ask the frontend to redirect login
             if path.startswith('/api/'):
                 return JsonResponse({'status': 'error', 'msg': 'User not logged in'}, status=401)

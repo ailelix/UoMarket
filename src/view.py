@@ -62,6 +62,9 @@ def uom_auth_callback(request):
                 username=username,
                 defaults={"first_name": fullname}
             )
+            from .models import UserStatus
+            if user.status == UserStatus.SUSPENDED or not user.is_active:
+                return HttpResponseBadRequest('Your account has been suspended')
             login(request, user)
             return redirect('/')
         else:
@@ -126,12 +129,14 @@ def manage_listing(request, listing_id=None):
 
     # Modify item
     elif request.method == 'PATCH':
+        if listing_id is None:
+            return JsonResponse({'error': 'Listing ID required'}, status=400)
         listing = get_object_or_404(Listing, pk=listing_id, seller=request.user)
         data = json.loads(request.body)
 
-        # Allow only when item is active
-        if listing.status != ListingStatus.ACTIVE:
-            return JsonResponse({'error': 'Cannot modify an inactive item'}, status=400)
+        # Allow only when item is active or reserved
+        if listing.status not in [ListingStatus.ACTIVE, ListingStatus.RESERVED]:
+            return JsonResponse({'error': 'Cannot modify a sold or removed item'}, status=400)
 
         listing.title = data.get('title', listing.title)
         listing.description = data.get('description', listing.description)
@@ -150,7 +155,11 @@ def manage_listing(request, listing_id=None):
                 listing.is_auction = data['is_auction']
             if 'endtime' in data:
                 from django.utils.dateparse import parse_datetime
-                listing.endtime = parse_datetime(data['endtime']) if data['endtime'] else None
+                from django.utils import timezone
+                parsed_time = parse_datetime(data['endtime']) if data['endtime'] else None
+                if parsed_time and parsed_time <= timezone.now():
+                    return JsonResponse({'error': 'Auction end time must be in the future'}, status=400)
+                listing.endtime = parsed_time
         
         listing.save()
         if 'categories' in data and data['categories'] is not None:
@@ -166,6 +175,8 @@ def manage_listing(request, listing_id=None):
 
     # Delete item
     elif request.method == 'DELETE':
+        if listing_id is None:
+            return JsonResponse({'error': 'Listing ID required'}, status=400)
         listing = get_object_or_404(Listing, pk=listing_id, seller=request.user)
         listing.status = ListingStatus.REMOVED
         listing.save()
@@ -186,10 +197,12 @@ def post_bid(request, listing_id=None):
                 'bid_id': bid.id
             })
         except (ValidationError, ValueError) as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            msg = e.messages[0] if hasattr(e, 'messages') and e.messages else str(e)
+            return JsonResponse({'status': 'error', 'message': msg}, status=400)
 
 def _settle_expired_auctions():
     from django.utils import timezone
+    from .models import Order, OrderStatus
     now = timezone.now()
     expired = Listing.objects.filter(
         is_auction=True, 
@@ -197,8 +210,16 @@ def _settle_expired_auctions():
         status=ListingStatus.ACTIVE
     )
     for item in expired:
-        if item.bids.exists():
+        highest_bid = item.bids.first()
+        if highest_bid:
             item.status = ListingStatus.SOLD
+            Order.objects.create(
+                listing=item,
+                buyer=highest_bid.user,
+                seller=item.seller,
+                amount_cents=highest_bid.amount_cents,
+                status=OrderStatus.PLACED
+            )
         else:
             item.status = ListingStatus.REMOVED
         item.save()
@@ -313,9 +334,12 @@ def get_categories(request):
         cats = list(Category.objects.values('id', 'name'))
         return JsonResponse(cats, safe=False)
 
+from django.views.decorators.csrf import ensure_csrf_cookie
+
 #
 # User Session APIs
 #
+@ensure_csrf_cookie
 def get_me(request):
     if request.method == 'GET':
         if request.user.is_authenticated:
@@ -337,5 +361,6 @@ def uom_logout(request):
 #
 # Render Frontend
 #
+@ensure_csrf_cookie
 def index(request):
     return render(request, 'index.html')

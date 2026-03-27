@@ -30,7 +30,7 @@
                                         {{ item.name }}
                                     </router-link>
                                 </h3>
-                                <p class="mt-1 text-sm text-slate-500">${{ (item.price_cents || 0) / 100 }}</p>
+                                <p class="mt-1 text-sm text-slate-500">£{{ (item.price_cents || 0) / 100 }}</p>
                             </div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-slate-100">
